@@ -3,4 +3,6 @@ numpy
 mss
 pyobjc-framework-Quartz
 pyautogui
-ffmpeg-python 
+ffmpeg-python
+Pillow
+imagehash 
