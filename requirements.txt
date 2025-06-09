@@ -1,0 +1,7 @@
+opencv-python-headless
+numpy
+mss
+pyobjc-framework-Quartz
+pyautogui
+ffmpeg-python
+match3-bot @ git+https://github.com/learncodebygaming/match3-bot.git 
