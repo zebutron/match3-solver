@@ -169,15 +169,48 @@ def process_unified_edge_templates():
     """
     Process templates using color detection for naming and color-contrast-enhanced edge detection.
     """
-    input_dir = Path("data/templates/royal-match/inputs/pieces")
-    output_dir = Path("data/templates/royal-match/extracted/pieces")
-    debug_dir = Path("debug/template_processing")
+    # Detect available games
+    templates_base = Path("data/templates")
+    if not templates_base.exists():
+        print("❌ Templates directory not found")
+        return
+    
+    games = [d.name for d in templates_base.iterdir() if d.is_dir()]
+    if not games:
+        print("❌ No games found in templates directory")
+        return
     
     print("🎨 Processing Templates with Color Detection + Color-Enhanced Edge Detection")
     print("=" * 70)
     
+    # Process each game
+    for game_name in games:
+        print(f"\n🎮 Processing game: {game_name}")
+        print("-" * 50)
+        
+        # Process pieces
+        process_template_type(game_name, "pieces", use_color_naming=True)
+        
+        # Process powerups  
+        process_template_type(game_name, "powerups", use_color_naming=False)
+
+def process_template_type(game_name, template_type, use_color_naming=True):
+    """
+    Process a specific template type (pieces or powerups) for a game.
+    
+    Args:
+        game_name: Name of the game (e.g., 'royal-match')
+        template_type: Type of template ('pieces' or 'powerups') 
+        use_color_naming: If True, use color detection for naming. If False, preserve original names.
+    """
+    input_dir = Path(f"data/templates/{game_name}/inputs/{template_type}")
+    output_dir = Path(f"data/templates/{game_name}/extracted/{template_type}")
+    debug_dir = Path(f"debug/template_processing/{template_type}")
+    
+    print(f"\n📁 Processing {template_type} for {game_name}...")
+    
     if not input_dir.exists():
-        print(f"❌ Input directory not found: {input_dir}")
+        print(f"⚠️  Input directory not found: {input_dir}")
         return
     
     # Clear output directory
@@ -221,10 +254,16 @@ def process_unified_edge_templates():
         cv.imwrite(str(original_debug_path), img)
         print(f"💾 Original saved: {original_debug_path}")
         
-        # Step 1: Detect primary color for naming
-        print("🎨 Detecting primary color...")
-        color_letter = detect_primary_color(img)
-        print(f"✅ Primary color detected: {color_letter}")
+        # Step 1: Determine naming strategy
+        if use_color_naming:
+            print("🎨 Detecting primary color...")
+            color_letter = detect_primary_color(img)
+            print(f"✅ Primary color detected: {color_letter}")
+            base_name = color_letter
+        else:
+            print("📝 Preserving original filename...")
+            base_name = image_file.stem
+            print(f"✅ Using original name: {base_name}")
         
         # Step 1.5: Apply and save color contrast enhancement
         print("🌈 Applying color contrast enhancement...")
@@ -316,14 +355,15 @@ def process_unified_edge_templates():
         cv.imwrite(str(final_debug_path), final_template)
         print(f"💾 Final template saved: {final_debug_path}")
         
-        # Step 7: Save with color-based name
-        output_path = output_dir / f"{color_letter}.png"
+        # Step 7: Save with appropriate name
+        output_path = output_dir / f"{base_name}.png"
         
-        # Handle duplicate colors by adding numbers
-        counter = 1
-        while output_path.exists():
-            output_path = output_dir / f"{color_letter}{counter}.png"
-            counter += 1
+        # Handle duplicates by adding numbers (only for color naming)
+        if use_color_naming:
+            counter = 1
+            while output_path.exists():
+                output_path = output_dir / f"{base_name}{counter}.png"
+                counter += 1
         
         success = cv.imwrite(str(output_path), final_template)
         
@@ -351,26 +391,35 @@ def process_unified_edge_templates():
         else:
             print(f"❌ Failed to save: {output_path}")
     
-    print(f"\n🎉 Processing complete! {len(image_files)} color-named edge templates created.")
-    print(f"📁 Output directory: {output_dir}")
-    print(f"🔍 Debug files saved to: {debug_dir}")
-    
-    print(f"\n🗺️  Color Mapping:")
-    for original, processed in color_mappings.items():
-        print(f"   {original} → {processed}")
-    
-    print("\n✨ Templates now optimized for:")
-    print("   • Color-based naming for easy identification")
-    print("   • Color-contrast-enhanced edge detection")
-    print("   • Leverages match-3 game color design principles")
-    print("   • Robust template matching")
-    print("   • Visual debugging and validation")
-    
-    print(f"\n🔍 Check debug directory for step-by-step processing:")
-    print(f"   • *_0_original.png - Original input")
-    print(f"   • *_1_enhanced.png - Color contrast enhanced")
-    print(f"   • *_2_edges.png - Edge detection result")
-    print(f"   • *_3_final.png - Final 64x64 template")
+    if image_files:
+        naming_strategy = "color-named" if use_color_naming else "original-named"
+        print(f"\n🎉 Processing complete! {len(image_files)} {naming_strategy} edge templates created.")
+        print(f"📁 Output directory: {output_dir}")
+        print(f"🔍 Debug files saved to: {debug_dir}")
+        
+        if color_mappings:
+            print(f"\n🗺️  File Mapping:")
+            for original, processed in color_mappings.items():
+                print(f"   {original} → {processed}")
+        
+        template_type_desc = "pieces" if template_type == "pieces" else "powerups"
+        print(f"\n✨ {template_type_desc.title()} templates now optimized for:")
+        if use_color_naming:
+            print("   • Color-based naming for easy identification")
+        else:
+            print("   • Original filename preservation")
+        print("   • Color-contrast-enhanced edge detection")
+        print("   • Leverages match-3 game color design principles")
+        print("   • Robust template matching")
+        print("   • Visual debugging and validation")
+        
+        print(f"\n🔍 Check debug directory for step-by-step processing:")
+        print(f"   • *_0_original.png - Original input")
+        print(f"   • *_1_enhanced.png - Color contrast enhanced")
+        print(f"   • *_2_edges.png - Edge detection result")
+        print(f"   • *_3_final.png - Final 64x64 template")
+    else:
+        print(f"\n⚠️  No images found in {input_dir}")
 
 def create_color_legend():
     """
@@ -390,58 +439,90 @@ def create_color_legend():
 
 def test_unified_templates_preview():
     """
-    Preview the unified color-named edge detection results.
+    Preview the unified edge detection results for all games.
     """
     print("\n🔍 Unified Template Preview")
     print("=" * 30)
     
-    templates_dir = Path("data/templates/royal-match/extracted/pieces")
-    template_files = list(templates_dir.glob("*.png"))
-    
-    if not template_files:
-        print("❌ No processed templates found")
+    templates_base = Path("data/templates")
+    if not templates_base.exists():
+        print("❌ Templates directory not found")
         return
     
-    for template_file in sorted(template_files):
-        img = cv.imread(str(template_file), cv.IMREAD_GRAYSCALE)
-        if img is not None:
-            edge_pixels = np.sum(img == 255)  # White pixels (edges)
-            total_pixels = img.shape[0] * img.shape[1]
-            edge_percentage = (edge_pixels / total_pixels) * 100
+    # Preview all games and template types
+    for game_dir in templates_base.iterdir():
+        if not game_dir.is_dir():
+            continue
             
-            # Quality assessment
-            if edge_percentage < 15:
-                quality = "✨ Precise"
-            elif edge_percentage < 30:
-                quality = "✅ Good"
-            elif edge_percentage < 50:
-                quality = "⚠️  Moderate"
-            else:
-                quality = "❌ Dense"
-            
-            color_name = template_file.stem
-            print(f"{color_name}: {edge_percentage:.1f}% edges ({edge_pixels}/{total_pixels} pixels) - {quality}")
-        else:
-            print(f"❌ Could not load {template_file.name}")
+        game_name = game_dir.name
+        print(f"\n🎮 {game_name}")
+        
+        for template_type in ["pieces", "powerups"]:
+            templates_dir = game_dir / "extracted" / template_type
+            if not templates_dir.exists():
+                continue
+                
+            template_files = list(templates_dir.glob("*.png"))
+            if not template_files:
+                continue
+                
+            print(f"  📁 {template_type}:")
+            for template_file in sorted(template_files):
+                img = cv.imread(str(template_file), cv.IMREAD_GRAYSCALE)
+                if img is not None:
+                    edge_pixels = np.sum(img == 255)  # White pixels (edges)
+                    total_pixels = img.shape[0] * img.shape[1]
+                    edge_percentage = (edge_pixels / total_pixels) * 100
+                    
+                    # Quality assessment
+                    if edge_percentage < 15:
+                        quality = "✨ Precise"
+                    elif edge_percentage < 30:
+                        quality = "✅ Good"
+                    elif edge_percentage < 50:
+                        quality = "⚠️  Moderate"
+                    else:
+                        quality = "❌ Dense"
+                    
+                    template_name = template_file.stem
+                    print(f"    {template_name}: {edge_percentage:.1f}% edges ({edge_pixels}/{total_pixels} pixels) - {quality}")
+                else:
+                    print(f"    ❌ Could not load {template_file.name}")
 
 def create_unified_comparison_visualization():
     """
     Create comparison showing original vs color-contrast-enhanced edge templates.
     """
-    input_dir = Path("data/templates/royal-match/inputs/pieces")
-    image_files = list(input_dir.glob("*.png"))
-    
-    if not image_files:
-        print("❌ No input templates found for visualization")
+    templates_base = Path("data/templates")
+    if not templates_base.exists():
+        print("❌ Templates directory not found for visualization")
         return
     
     print(f"\n👀 Creating Original vs Color-Enhanced Edge Detection Comparison")
     print("=" * 65)
     
+    # Find first available game with pieces for demonstration
+    demo_images = []
+    for game_dir in templates_base.iterdir():
+        if not game_dir.is_dir():
+            continue
+        
+        pieces_dir = game_dir / "inputs" / "pieces"
+        if pieces_dir.exists():
+            image_files = list(pieces_dir.glob("*.png"))
+            if image_files:
+                demo_images = image_files[:4]  # Limit to 4 for visualization
+                print(f"Using {game_dir.name} pieces for demonstration")
+                break
+    
+    if not demo_images:
+        print("❌ No input templates found for visualization")
+        return
+    
     # Process all templates for comparison
     comparisons = []
     
-    for i, image_file in enumerate(image_files[:4]):  # Limit to 4 for visualization
+    for i, image_file in enumerate(demo_images):
         img = cv.imread(str(image_file))
         if img is None:
             continue
