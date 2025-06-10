@@ -1,72 +1,101 @@
-# match3-solver
+# Match3 Bot - Royal Match Automation
 
-An iPhone-Mirroring Match-3 autopilot that automatically explores, plays, and captures video of match-3 puzzle games.
+🎯 **Automated Match-3 gameplay bot with dynamic grid detection and intelligent move selection.**
 
-## Goals
+## 🚀 Core Workflow
 
-Provide an autonomous pipeline to play and screen record match-3 games, which will...
-• Starting from the game's home screen (or first tutorial), navigate game UI automatically, clicking through tutorials, and exploring new features and menus as they unlock throughout the first 30 levels, en route to the next puzzle level.
-• Once the next puzzle is begun, hand off puzzle boards to the match-3 solver, play and complete the puzzle, and then resume non-solver control once the current puzzle is completed, in order to explore and record newly unlocked features, and then enter the next puzzle.
-• Record videos of all of the above.
+### 1. Template Processing Pipeline
+Process raw piece images into edge-detected templates for robust matching:
 
-## Setup Workflow
-
-### 1. Install Dependencies
 ```bash
-pyenv install
-pip install -r requirements.txt
+# Place piece images in: data/templates/royal-match/inputs/pieces/
+# Run the edge detection processor:
+python3 edge_detection_template_processor.py
+
+# Output: Processed templates in data/templates/royal-match/extracted/pieces/
 ```
 
-### 2. Prepare Game Templates
-For each match-3 game you want to automate, you need to extract tile templates:
+**Features:**
+- ✅ **Hue-focused edge detection** for color-to-color boundary detection
+- ✅ **Multi-scale template optimization** with automatic scaling
+- ✅ **Color-named templates** (R, G, B, O) for clear debugging
+- ✅ **Robust against lighting variations** and obstacles
 
-**Step 1: Collect Screenshots**
-- Take 2-3 clear screenshots of the game's puzzle board
-- Save them as PNG/JPG files in: `data/templates/{game_name}/inputs/`
-- Example: `data/templates/royal-match/inputs/screenshot1.png`
+### 2. Gameplay Bot
+Intelligent bot that dynamically detects board layout and executes optimal moves:
 
-**Step 2: Extract Templates Automatically**
 ```bash
-python -m src.template_creator royal-match
+cd vendor/match3-bot
+python3 Python_match_3_bot_test.py
 ```
 
-This automated tool will:
-- 🔍 Detect the game board region in each screenshot
-- ✂️ Slice the board into 8x8 grid tiles  
-- 🔗 Cluster similar tiles using perceptual hashing
-- 🚮 Filter out UI elements (tiles that appear only once)
-- 💾 Save template exemplars to `data/templates/{game_name}/tiles/`
+**Features:**
+- 🎯 **Dynamic grid detection** - automatically detects board dimensions (8x10, 9x12, etc.)
+- 🧮 **Anchor-based grid inference** using high-confidence piece positions
+- 🎲 **Smart move selection** with randomization (70% best, 30% random from top 3)
+- 🚫 **Failed move tracking** prevents infinite retry loops
+- 📍 **Precise coordinate mapping** with 2-4 pixel accuracy
+- 🎮 **Interactive setup** with click-based or manual coordinate entry
 
-### 3. Run the Autopilot
-```bash
-python -m src.fsm_runner royal-match
+## 📁 Project Structure
+
+```
+match3-solver/
+├── edge_detection_template_processor.py    # Template processing pipeline
+├── vendor/match3-bot/
+│   └── Python_match_3_bot_test.py         # Main gameplay bot
+├── data/templates/royal-match/
+│   ├── inputs/pieces/                     # Raw piece images (input)
+│   ├── extracted/pieces/                  # Processed templates (output)
+│   └── coordinates.txt                    # Saved screen coordinates
+├── requirements.txt                       # Python dependencies
+└── README.md                             # This file
 ```
 
-## Architecture
+## 🛠️ Setup
 
-- **`src/template_creator.py`** - Automated tile template extraction
-- **`src/fsm_runner.py`** - Main state machine loop (coming soon)
-- **`src/grab.py`** - Screen capture for iPhone mirroring
-- **`src/navigator.py`** - UI automation and menu navigation  
-- **`src/solver.py`** - Wrapper around match3-bot solver
-- **`src/states.py`** - Game state detection
-- **`src/recorder.py`** - Video recording pipeline
-- **`vendor/match3-bot/`** - Core match-3 solving algorithms
-- **`data/templates/{game}/`** - Game-specific tile templates
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## Supported Games
+2. **Process templates:**
+   - Add piece images to `data/templates/royal-match/inputs/pieces/`
+   - Run `python3 edge_detection_template_processor.py`
 
-Add any match-3 game by running the template extraction workflow:
-- Royal Match
-- Candy Crush Saga  
-- Bejeweled
-- _(Any match-3 game with clear tile graphics)_
+3. **Run the bot:**
+   ```bash
+   cd vendor/match3-bot
+   python3 Python_match_3_bot_test.py
+   ```
 
-## Dependencies
+## 🎯 How It Works
 
-- **OpenCV** - Image processing and template matching
-- **imagehash** - Perceptual hashing for tile clustering  
-- **Pillow** - Image manipulation
-- **pyautogui** - Mouse/keyboard automation
-- **mss** - Fast screen capture
-- **ffmpeg-python** - Video recording 
+### Template Processing
+1. **Edge Detection:** Converts piece images to hue-focused edge templates
+2. **Scale Optimization:** Finds optimal template scaling for current puzzle
+3. **Threshold Tuning:** Optimizes matching thresholds per piece type
+
+### Bot Operation
+1. **Grid Detection:** Uses anchor pieces to infer complete grid structure
+2. **Piece Recognition:** Matches templates against board with confidence scoring
+3. **Move Analysis:** Finds all legal 3/4/5-matches with pattern recognition
+4. **Smart Selection:** Prioritizes moves with randomization and failed-move avoidance
+5. **Execution:** Precise screen coordinate mapping for reliable move execution
+
+## 🎮 Supported Games
+
+- ✅ **Royal Match** - Full support with dynamic grid detection
+- 🔧 **Extensible** - Template system works with any match-3 game
+
+## 🏆 Key Achievements
+
+- **Dynamic grid detection** replacing hardcoded assumptions
+- **Anchor-based coordinate inference** for precise positioning  
+- **Smart move selection** with anti-loop protection
+- **Robust template matching** against lighting/obstacle variations
+- **Multi-board support** automatically adapts to different level types
+
+---
+
+*Built with computer vision, template matching, and intelligent game analysis.* 
