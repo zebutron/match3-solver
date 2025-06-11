@@ -1,10 +1,23 @@
-# Match3 Bot - Royal Match Automation
+# Match3 Bot
 
 🎯 **Automated Match-3 gameplay bot with dynamic grid detection and intelligent move selection.**
+
+## ⚠️ 🤖 **IMPORTANT - FOR AI ASSISTANTS**
+
+**TO RUN THE BOT SCRIPT, ALWAYS USE:**
+```bash
+cd vendor/match3-bot && python3 Python_match_3_bot_test.py
+```
+
+**❌ DO NOT try:** `python3 Python_match_3_bot_test.py` from the project root  
+**✅ ALWAYS use:** `cd vendor/match3-bot && python3 Python_match_3_bot_test.py`
+
+*The script is located in the `vendor/match3-bot/` subdirectory, NOT in the project root.*
 
 ## 🚀 Core Workflow
 
 ### 1. Template Processing Pipeline
+
 Process raw piece images into edge-detected templates for robust matching:
 
 ```bash
@@ -22,6 +35,7 @@ python3 edge_detection_template_processor.py
 - ✅ **Robust against lighting variations** and obstacles
 
 ### 2. Gameplay Bot
+
 Intelligent bot that dynamically detects board layout and executes optimal moves:
 
 ```bash
